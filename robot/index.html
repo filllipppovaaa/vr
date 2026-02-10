@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Робот с анимациями</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        @media (min-width: 992px) {
+            .content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .card {
+            background: rgba(30, 30, 46, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #00dbde;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 219, 222, 0.3);
+        }
+        
+        h2 i {
+            font-size: 1.5rem;
+        }
+        
+        .model-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --progress-bar-color: #00dbde;
+            --progress-bar-height: 8px;
+            --poster-color: transparent;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 219, 222, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 219, 222, 0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn:disabled {
+            background: #4a4a6d;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(90deg, #4a4a6d, #6a6a8d);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(106, 106, 141, 0.5);
+        }
+        
+        .description {
+            margin-top: 15px;
+            line-height: 1.6;
+            color: #b0b0b0;
+            font-size: 1rem;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border-left: 4px solid #00dbde;
+        }
+        
+        .info-box {
+            background: rgba(252, 0, 255, 0.1);
+            border-left: 4px solid #fc00ff;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .file-info div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .file-info .label {
+            color: #00dbde;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-robot"></i> Интерактивный 3D Робот</h1>
+            <p class="subtitle">Демонстрация работы с 3D-моделью robot.glb. Используются две техники анимации: автозапуск и плавные переходы между клипами.</p>
+            
+            <div class="file-info">
+                <div>
+                    <span class="label">Имя файла:</span>
+                    <span>robot.glb</span>
+                </div>
+                <div>
+                    <span class="label">Тип:</span>
+                    <span>3D Object</span>
+                </div>
+                <div>
+                    <span class="label">Размер:</span>
+                    <span>98 КБ</span>
+                </div>
+                <div>
+                    <span class="label">Дата изменения:</span>
+                    <span>10.02.2026 22:01</span>
+                </div>
+            </div>
+        </header>
+        
+        <main class="content">
+            <!-- Пример 1: Автозапуск анимации -->
+            <section class="card">
+                <h2><i class="fas fa-play-circle"></i> Автозапуск анимации</h2>
+                <div class="model-container">
+                    <model-viewer 
+                        id="autoplay-model"
+                        src="robot.glb"
+                        alt="3D модель робота с автозапуском анимации"
+                        ar
+                        ar-modes="webxr scene-viewer quick-look"
+                        camera-controls
+                        tone-mapping="neutral"
+                        shadow-intensity="1"
+                        exposure="1"
+                        autoplay
+                        animation-name="All Animations">
+                    </model-viewer>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="play-btn">
+                        <i class="fas fa-play"></i> Воспроизвести
+                    </button>
+                    <button class="btn btn-secondary" id="pause-btn">
+                        <i class="fas fa-pause"></i> Пауза
+                    </button>
+                    <button class="btn" id="restart-btn">
+                        <i class="fas fa-redo"></i> Перезапустить
+                    </button>
+                </div>
+                <p class="description">
+                    Модель автоматически начинает анимацию при загрузке благодаря атрибуту <code>autoplay</code>.
+                    Анимация будет воспроизводиться непрерывно, пока вы не поставите её на паузу.
+                </p>
+                <div class="code-block">
+                    &lt;model-viewer src="robot.glb" <strong>autoplay</strong> animation-name="All Animations"&gt;
+                </div>
+            </section>
+            
+            <!-- Пример 2: Автоматический переход между клипами -->
+            <section class="card">
+                <h2><i class="fas fa-exchange-alt"></i> Переходы между анимациями</h2>
+                <div class="model-container">
+                    <model-viewer 
+                        id="crossfade-model"
+                        src="robot.glb"
+                        alt="3D модель робота с переходами между анимациями"
+                        ar
+                        ar-modes="webxr scene-viewer quick-look"
+                        camera-controls
+                        tone-mapping="neutral"
+                        poster="poster.webp"
+                        shadow-intensity="1"
+                        exposure="1"
+                        autoplay
+                        animation-crossfade-duration="1000">
+                    </model-viewer>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="idle-btn">
+                        <i class="fas fa-stop"></i> Стоять
+                    </button>
+                    <button class="btn" id="walk-btn">
+                        <i class="fas fa-walking"></i> Ходить
+                    </button>
+                    <button class="btn" id="dance-btn">
+                        <i class="fas fa-music"></i> Танцевать
+                    </button>
+                    <button class="btn" id="jump-btn">
+                        <i class="fas fa-fighter-jet"></i> Прыгать
+                    </button>
+                </div>
+                <p class="description">
+                    Плавные переходы между анимациями с помощью атрибута <code>animation-crossfade-duration="1000"</code>.
+                    Каждая анимация плавно перетекает в следующую в течение 1 секунды.
+                </p>
+                <div class="code-block">
+                    &lt;model-viewer src="robot.glb" autoplay <strong>animation-crossfade-duration="1000"</strong>&gt;
+                </div>
+            </section>
+        </main>
+        
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> Инструкция по использованию</h3>
+            <p>1. Сохраните этот код как файл <strong>index.html</strong> в той же папке, где находится <strong>robot.glb</strong></p>
+            <p>2. Откройте файл index.html в браузере (двойной клик)</p>
+            <p>3. Если у вас есть файл <strong>poster.webp</strong>, поместите его в ту же папку для отображения постера</p>
+            <p>4. Используйте кнопки под каждой моделью для управления анимациями</p>
+            <p>5. Для AR-режима на мобильном устройстве нажмите значок AR в правом нижнем углу модели</p>
+        </div>
+        
+        <footer class="footer">
+            <p><i class="fas fa-code"></i> 3D Model Viewer Demo | Ваша модель: robot.glb | Создано с использованием Model-Viewer</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">
+                <i class="fas fa-exclamation-triangle"></i> Если анимации не работают, убедитесь что ваша модель robot.glb содержит анимационные клипы
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Пример 1: Управление анимацией с автозапуском
+        const autoplayModel = document.getElementById('autoplay-model');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        playBtn.addEventListener('click', () => {
+            autoplayModel.play();
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            playBtn.innerHTML = '<i class="fas fa-play"></i> Воспроизводится';
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            autoplayModel.pause();
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            playBtn.innerHTML = '<i class="fas fa-play"></i> Воспроизвести';
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            autoplayModel.currentTime = 0;
+            autoplayModel.play();
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            playBtn.innerHTML = '<i class="fas fa-play"></i> Воспроизводится';
+        });
+        
+        // Изначально модель на автозапуске, поэтому кнопка воспроизведения отключена
+        playBtn.disabled = true;
+        playBtn.innerHTML = '<i class="fas fa-play"></i> Воспроизводится';
+        
+        // Пример 2: Управление переходами между анимациями
+        const crossfadeModel = document.getElementById('crossfade-model');
+        const idleBtn = document.getElementById('idle-btn');
+        const walkBtn = document.getElementById('walk-btn');
+        const danceBtn = document.getElementById('dance-btn');
+        const jumpBtn = document.getElementById('jump-btn');
+        
+        // Функция для активации анимации с плавным переходом
+        function activateAnimation(animationName, button) {
+            crossfadeModel.animationName = animationName;
+            
+            // Сброс всех кнопок
+            [idleBtn, walkBtn, danceBtn, jumpBtn].forEach(btn => {
+                btn.style.background = 'linear-gradient(90deg, #00dbde, #fc00ff)';
+                btn.innerHTML = btn.innerHTML.replace(' ✓', '');
+            });
+            
+            // Подсветка активной кнопки
+            button.style.background = 'linear-gradient(90deg, #43e97b, #38f9d7)';
+            button.innerHTML += ' ✓';
+        }
+        
+        // Назначаем обработчики для кнопок
+        idleBtn.addEventListener('click', () => activateAnimation('Idle', idleBtn));
+        walkBtn.addEventListener('click', () => activateAnimation('Walking', walkBtn));
+        danceBtn.addEventListener('click', () => activateAnimation('Dancing', danceBtn));
+        jumpBtn.addEventListener('click', () => activateAnimation('Jumping', jumpBtn));
+        
+        // Изначально активируем анимацию покоя
+        setTimeout(() => {
+            activateAnimation('Idle', idleBtn);
+        }, 1000);
+        
+        // Обработка загрузки моделей
+        autoplayModel.addEventListener('load', () => {
+            console.log('Модель с автозапуском загружена');
+            // Пытаемся получить список доступных анимаций
+            autoplayModel.addEventListener('load', () => {
+                console.log('Доступные анимации:', autoplayModel.availableAnimations);
+            });
+        });
+        
+        crossfadeModel.addEventListener('load', () => {
+            console.log('Модель с переходами загружена');
+        });
+        
+        // Обработка ошибок загрузки модели
+        autoplayModel.addEventListener('error', (event) => {
+            console.error('Ошибка загрузки модели:', event.detail);
+            document.querySelector('.info-box').innerHTML += 
+                '<p style="color:#ff6b6b;"><i class="fas fa-exclamation-triangle"></i> Ошибка загрузки robot.glb. Убедитесь что файл находится в той же папке что и index.html</p>';
+        });
+    </script>
+</body>
+</html>
