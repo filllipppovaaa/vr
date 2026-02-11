@@ -4,14 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Robot Animations</title>
+  <title>Robot Animations Control</title>
 
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
 
   <style>
-    body { margin: 0; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
+
+    #controls {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    button {
+      margin: 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
 
     model-viewer {
       width: 100vw;
@@ -22,6 +43,11 @@
 </head>
 
 <body>
+
+<div id="controls">
+  <button id="btn1">Анимация 1</button>
+  <button id="btn2">Анимация 2</button>
+</div>
 
 <model-viewer
   id="mv"
@@ -36,43 +62,45 @@
 (() => {
 
   const mv = document.getElementById('mv');
+  const btn1 = document.getElementById('btn1');
+  const btn2 = document.getElementById('btn2');
 
   let animations = [];
-  let index = 0;
 
   // Когда модель загрузилась
   mv.addEventListener('load', () => {
 
-    // Получаем список анимаций из файла
     animations = mv.availableAnimations;
 
     console.log('Animations:', animations);
 
-    if (!animations || animations.length < 2) {
-      console.log('Меньше двух анимаций');
-      return;
+    if (animations.length >= 1) {
+      mv.animationName = animations[0];
+      mv.play();
     }
 
-    // Стартуем с первой
-    mv.animationName = animations[0];
-    mv.currentTime = 0;
-    mv.play();
+  });
 
-    // Переключаем по очереди
-    setInterval(() => {
-
-      index = (index + 1) % animations.length;
-
-      mv.animationName = animations[index];
+  // Кнопка 1
+  btn1.addEventListener('click', () => {
+    if (animations.length >= 1) {
+      mv.animationName = animations[0];
       mv.currentTime = 0;
       mv.play();
+    }
+  });
 
-    }, 4000); // 4 секунды на каждую
-
+  // Кнопка 2
+  btn2.addEventListener('click', () => {
+    if (animations.length >= 2) {
+      mv.animationName = animations[1];
+      mv.currentTime = 0;
+      mv.play();
+    }
   });
 
 })();
 </script>
 
 </body>
-</html>э
+</html>
