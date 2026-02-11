@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Robot Animation</title>
+
+  <script type="module"
+    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+    }
+
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<model-viewer
+  src="robot.glb"
+  camera-controls
+  autoplay
+  animation-loop
+>
+</model-viewer>
+
+</body>
+</html>
