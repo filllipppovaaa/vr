@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Robot Animations</title>
+
+  <script type="module"
+    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+  </script>
+
+  <style>
+    body { margin: 0; }
+
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<model-viewer
+  id="mv"
+  src="robot.glb"
+  camera-controls
+  autoplay
+  animation-crossfade-duration="0"
+>
+</model-viewer>
+
+<script>
+(() => {
+
+  const mv = document.getElementById('mv');
+
+  let animations = [];
+  let index = 0;
+
+  // Когда модель загрузилась
+  mv.addEventListener('load', () => {
+
+    // Получаем список анимаций из файла
+    animations = mv.availableAnimations;
+
+    console.log('Animations:', animations);
+
+    if (!animations || animations.length < 2) {
+      console.log('Меньше двух анимаций');
+      return;
+    }
+
+    // Стартуем с первой
+    mv.animationName = animations[0];
+    mv.currentTime = 0;
+    mv.play();
+
+    // Переключаем по очереди
+    setInterval(() => {
+
+      index = (index + 1) % animations.length;
+
+      mv.animationName = animations[index];
+      mv.currentTime = 0;
+      mv.play();
+
+    }, 4000); // 4 секунды на каждую
+
+  });
+
+})();
+</script>
+
+</body>
+</html>э
