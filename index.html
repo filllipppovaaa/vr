@@ -6,8 +6,9 @@
 
   <title>Robot Animations Control</title>
 
-  <!-- Используем стабильную версию model-viewer -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <!-- Подключаем model-viewer с эффектами -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer-effects@2.0.0/dist/model-viewer-effects.min.js"></script>
 
   <style>
     body {
@@ -44,10 +45,15 @@
       color: white;
       border: none;
       border-radius: 4px;
+      font-weight: bold;
     }
 
     button:hover {
       background: #45a049;
+    }
+
+    button.active {
+      background: #ff5722;
     }
 
     model-viewer {
@@ -61,11 +67,11 @@
 <body>
 
 <div id="controls">
-  <h3>Управление роботом</h3>
+  <h3>🤖 Управление роботом</h3>
   <button id="btn1">Анимация 1</button>
   <button id="btn2">Анимация 2</button>
-  <button id="outlineBtn">Контур</button>
-  <button id="pixelBtn">Пикселизация</button>
+  <button id="outlineBtn">🔲 Контур</button>
+  <button id="pixelBtn">🔳 Пикселизация</button>
   
   <div id="debug-info">
     <div><strong>Статус:</strong> <span id="status">Загрузка...</span></div>
@@ -73,6 +79,7 @@
   </div>
 </div>
 
+<!-- model-viewer с эффектами -->
 <model-viewer
   id="mv"
   src="robot.glb"
@@ -82,20 +89,33 @@
   ar-status="not-present"
   loading="eager"
   reveal="auto"
+  tone-mapping="aces"
+  shadow-intensity="1"
+  environment-image="neutral"
 >
 
-  <effect-composer render-mode="quality">
-    <outline-effect id="outlineEffect"
-        color="orange"
-        blend-mode="skip">
-    </outline-effect>
-
-    <pixelate-effect id="pixelEffect"
-        granularity="6"
-        blend-mode="skip">
-    </pixelate-effect>
-
+  <!-- Эффекты должны быть внутри тега model-viewer -->
+  <effect-composer>
+    <!-- Контур (outline) -->
+    <outline-effect
+      id="outlineEffect"
+      color="orange"
+      strength="3"
+      blend-mode="screen"
+    ></outline-effect>
+    
+    <!-- Пикселизация -->
+    <pixelate-effect
+      id="pixelEffect"
+      granularity="8"
+      blend-mode="normal"
+      opacity="1"
+    ></pixelate-effect>
   </effect-composer>
+
+  <!-- Добавляем освещение -->
+  <directional-light intensity="1" shadow-intensity="1"></directional-light>
+  <ambient-light intensity="0.5"></ambient-light>
 
 </model-viewer>
 
@@ -111,22 +131,53 @@
   const statusSpan = document.getElementById('status');
   const animListSpan = document.getElementById('anim-list');
 
-  const outlineEffect = document.getElementById('outlineEffect');
-  const pixelEffect = document.getElementById('pixelEffect');
-
   let animations = [];
 
-  // Проверяем наличие model-viewer
-  if (!mv) {
-    console.error('model-viewer element not found');
-    return;
+  // Функция обновления статуса кнопок
+  function updateButtons() {
+    if (outlineEffect) {
+      if (outlineEffect.blendMode !== 'skip') {
+        outlineBtn.classList.add('active');
+      } else {
+        outlineBtn.classList.remove('active');
+      }
+    }
+    
+    if (pixelEffect) {
+      if (pixelEffect.blendMode !== 'skip') {
+        pixelBtn.classList.add('active');
+      } else {
+        pixelBtn.classList.remove('active');
+      }
+    }
   }
 
-  // Отслеживаем события загрузки
+  // Получаем эффекты после загрузки модели
+  let outlineEffect, pixelEffect;
+  
   mv.addEventListener('load', () => {
-    console.log('Model loaded successfully');
+    console.log('✅ Model loaded successfully');
     statusSpan.textContent = 'Модель загружена';
     statusSpan.style.color = 'green';
+    
+    // Получаем эффекты из model-viewer
+    setTimeout(() => {
+      // Ищем эффекты внутри model-viewer
+      const effects = mv.querySelectorAll('outline-effect, pixelate-effect');
+      console.log('Found effects:', effects.length);
+      
+      effects.forEach(effect => {
+        if (effect.tagName === 'OUTLINE-EFFECT') {
+          outlineEffect = effect;
+          console.log('Outline effect found');
+        } else if (effect.tagName === 'PIXELATE-EFFECT') {
+          pixelEffect = effect;
+          console.log('Pixelate effect found');
+        }
+      });
+      
+      updateButtons();
+    }, 500);
     
     // Получаем доступные анимации
     try {
@@ -146,14 +197,9 @@
   });
 
   mv.addEventListener('error', (error) => {
-    console.error('Model loading error:', error);
+    console.error('❌ Model loading error:', error);
     statusSpan.textContent = 'Ошибка загрузки';
     statusSpan.style.color = 'red';
-    
-    // Детальная информация об ошибке
-    if (error.detail) {
-      console.error('Error detail:', error.detail);
-    }
   });
 
   mv.addEventListener('progress', (event) => {
@@ -170,8 +216,6 @@
       mv.currentTime = 0;
       mv.play();
       console.log('Switched to animation:', animations[0]);
-    } else {
-      console.log('No animations available');
     }
   });
 
@@ -182,38 +226,57 @@
       mv.currentTime = 0;
       mv.play();
       console.log('Switched to animation:', animations[1]);
-    } else {
-      console.log('Second animation not available');
     }
   });
 
   // Переключение контура
   outlineBtn.addEventListener('click', () => {
     if (outlineEffect) {
-      outlineEffect.blendMode =
-        outlineEffect.blendMode === 'skip' ? 'default' : 'skip';
-      console.log('Outline blendMode:', outlineEffect.blendMode);
+      // Переключаем blendMode между 'screen' и 'skip'
+      if (outlineEffect.blendMode === 'skip') {
+        outlineEffect.blendMode = 'screen';
+        outlineEffect.strength = 3;
+        outlineBtn.classList.add('active');
+        console.log('🟠 Outline enabled');
+      } else {
+        outlineEffect.blendMode = 'skip';
+        outlineBtn.classList.remove('active');
+        console.log('⚪ Outline disabled');
+      }
+    } else {
+      console.log('Outline effect not found');
     }
   });
 
   // Переключение пикселизации
   pixelBtn.addEventListener('click', () => {
     if (pixelEffect) {
-      pixelEffect.blendMode =
-        pixelEffect.blendMode === 'skip' ? 'default' : 'skip';
-      console.log('Pixel blendMode:', pixelEffect.blendMode);
+      // Переключаем blendMode между 'normal' и 'skip'
+      if (pixelEffect.blendMode === 'skip') {
+        pixelEffect.blendMode = 'normal';
+        pixelEffect.granularity = 8;
+        pixelBtn.classList.add('active');
+        console.log('🔲 Pixelation enabled');
+      } else {
+        pixelEffect.blendMode = 'skip';
+        pixelBtn.classList.remove('active');
+        console.log('⬜ Pixelation disabled');
+      }
+    } else {
+      console.log('Pixel effect not found');
     }
   });
 
-  // Проверяем, есть ли эффекты
-  console.log('Effects:', { outlineEffect, pixelEffect });
-
-  // Принудительно начинаем загрузку
+  // Проверяем загрузку эффектов
   setTimeout(() => {
-    if (mv.src) {
-      console.log('Model src:', mv.src);
+    if (!outlineEffect || !pixelEffect) {
+      console.log('Searching for effects again...');
+      outlineEffect = document.getElementById('outlineEffect');
+      pixelEffect = document.getElementById('pixelEffect');
+      console.log('Effects by ID:', { outlineEffect, pixelEffect });
+      updateButtons();
     }
-  }, 1000);
+  }, 2000);
 
 })();
 </script>
