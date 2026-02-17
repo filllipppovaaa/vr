@@ -6,9 +6,8 @@
 
   <title>Robot Animations Control</title>
 
-<script type="module"
-  src="https://unpkg.com/@google/model-viewer/dist/model-viewer-effects.min.js">
-</script>
+  <!-- Используем стабильную версию model-viewer -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <style>
     body {
@@ -23,21 +22,38 @@
       left: 10px;
       z-index: 10;
       background: white;
-      padding: 10px;
+      padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    #debug-info {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-size: 12px;
+      max-width: 300px;
     }
 
     button {
       margin: 5px;
-      padding: 6px 12px;
+      padding: 8px 16px;
       cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background: #45a049;
     }
 
     model-viewer {
       width: 100vw;
       height: 100vh;
-      background: white;
+      background: #e0e0e0;
     }
   </style>
 </head>
@@ -45,10 +61,16 @@
 <body>
 
 <div id="controls">
+  <h3>Управление роботом</h3>
   <button id="btn1">Анимация 1</button>
   <button id="btn2">Анимация 2</button>
   <button id="outlineBtn">Контур</button>
   <button id="pixelBtn">Пикселизация</button>
+  
+  <div id="debug-info">
+    <div><strong>Статус:</strong> <span id="status">Загрузка...</span></div>
+    <div><strong>Анимации:</strong> <span id="anim-list">нет</span></div>
+  </div>
 </div>
 
 <model-viewer
@@ -57,6 +79,9 @@
   camera-controls
   autoplay
   animation-crossfade-duration="0"
+  ar-status="not-present"
+  loading="eager"
+  reveal="auto"
 >
 
   <effect-composer render-mode="quality">
@@ -76,30 +101,66 @@
 
 <script>
 (() => {
-
+  console.log('Script started');
+  
   const mv = document.getElementById('mv');
   const btn1 = document.getElementById('btn1');
   const btn2 = document.getElementById('btn2');
   const outlineBtn = document.getElementById('outlineBtn');
   const pixelBtn = document.getElementById('pixelBtn');
+  const statusSpan = document.getElementById('status');
+  const animListSpan = document.getElementById('anim-list');
 
   const outlineEffect = document.getElementById('outlineEffect');
   const pixelEffect = document.getElementById('pixelEffect');
 
   let animations = [];
 
-  // Когда модель загрузилась
+  // Проверяем наличие model-viewer
+  if (!mv) {
+    console.error('model-viewer element not found');
+    return;
+  }
+
+  // Отслеживаем события загрузки
   mv.addEventListener('load', () => {
-
-    animations = mv.availableAnimations;
-
-    console.log('Animations:', animations);
-
-    if (animations.length >= 1) {
-      mv.animationName = animations[0];
-      mv.play();
+    console.log('Model loaded successfully');
+    statusSpan.textContent = 'Модель загружена';
+    statusSpan.style.color = 'green';
+    
+    // Получаем доступные анимации
+    try {
+      animations = mv.availableAnimations || [];
+      console.log('Available animations:', animations);
+      animListSpan.textContent = animations.length ? animations.join(', ') : 'нет анимаций';
+      
+      if (animations.length >= 1) {
+        mv.animationName = animations[0];
+        mv.play();
+        console.log('Playing animation:', animations[0]);
+      }
+    } catch (e) {
+      console.error('Error getting animations:', e);
+      animListSpan.textContent = 'ошибка';
     }
+  });
 
+  mv.addEventListener('error', (error) => {
+    console.error('Model loading error:', error);
+    statusSpan.textContent = 'Ошибка загрузки';
+    statusSpan.style.color = 'red';
+    
+    // Детальная информация об ошибке
+    if (error.detail) {
+      console.error('Error detail:', error.detail);
+    }
+  });
+
+  mv.addEventListener('progress', (event) => {
+    const progress = event.detail?.totalProgress || 0;
+    if (progress < 1) {
+      statusSpan.textContent = `Загрузка: ${Math.round(progress * 100)}%`;
+    }
   });
 
   // Кнопка 1
@@ -108,6 +169,9 @@
       mv.animationName = animations[0];
       mv.currentTime = 0;
       mv.play();
+      console.log('Switched to animation:', animations[0]);
+    } else {
+      console.log('No animations available');
     }
   });
 
@@ -117,20 +181,39 @@
       mv.animationName = animations[1];
       mv.currentTime = 0;
       mv.play();
+      console.log('Switched to animation:', animations[1]);
+    } else {
+      console.log('Second animation not available');
     }
   });
 
   // Переключение контура
   outlineBtn.addEventListener('click', () => {
-    outlineEffect.blendMode =
-      outlineEffect.blendMode === 'skip' ? 'default' : 'skip';
+    if (outlineEffect) {
+      outlineEffect.blendMode =
+        outlineEffect.blendMode === 'skip' ? 'default' : 'skip';
+      console.log('Outline blendMode:', outlineEffect.blendMode);
+    }
   });
 
   // Переключение пикселизации
   pixelBtn.addEventListener('click', () => {
-    pixelEffect.blendMode =
-      pixelEffect.blendMode === 'skip' ? 'default' : 'skip';
+    if (pixelEffect) {
+      pixelEffect.blendMode =
+        pixelEffect.blendMode === 'skip' ? 'default' : 'skip';
+      console.log('Pixel blendMode:', pixelEffect.blendMode);
+    }
   });
+
+  // Проверяем, есть ли эффекты
+  console.log('Effects:', { outlineEffect, pixelEffect });
+
+  // Принудительно начинаем загрузку
+  setTimeout(() => {
+    if (mv.src) {
+      console.log('Model src:', mv.src);
+    }
+  }, 1000);
 
 })();
 </script>
