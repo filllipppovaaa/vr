@@ -47,6 +47,8 @@
 <div id="controls">
   <button id="btn1">Анимация 1</button>
   <button id="btn2">Анимация 2</button>
+  <button id="outlineBtn">Контур</button>
+  <button id="pixelBtn">Пикселизация</button>
 </div>
 
 <model-viewer
@@ -56,6 +58,20 @@
   autoplay
   animation-crossfade-duration="0"
 >
+
+  <effect-composer render-mode="quality">
+    <outline-effect id="outlineEffect"
+        color="orange"
+        blend-mode="skip">
+    </outline-effect>
+
+    <pixelate-effect id="pixelEffect"
+        granularity="6"
+        blend-mode="skip">
+    </pixelate-effect>
+
+  </effect-composer>
+
 </model-viewer>
 
 <script>
@@ -64,6 +80,11 @@
   const mv = document.getElementById('mv');
   const btn1 = document.getElementById('btn1');
   const btn2 = document.getElementById('btn2');
+  const outlineBtn = document.getElementById('outlineBtn');
+  const pixelBtn = document.getElementById('pixelBtn');
+
+  const outlineEffect = document.getElementById('outlineEffect');
+  const pixelEffect = document.getElementById('pixelEffect');
 
   let animations = [];
 
@@ -97,6 +118,18 @@
       mv.currentTime = 0;
       mv.play();
     }
+  });
+
+  // Переключение контура
+  outlineBtn.addEventListener('click', () => {
+    outlineEffect.blendMode =
+      outlineEffect.blendMode === 'skip' ? 'default' : 'skip';
+  });
+
+  // Переключение пикселизации
+  pixelBtn.addEventListener('click', () => {
+    pixelEffect.blendMode =
+      pixelEffect.blendMode === 'skip' ? 'default' : 'skip';
   });
 
 })();
