@@ -176,7 +176,7 @@
 
   <effect-composer id="composer">
     <outline-effect id="outlineEffect" color="red" blend-mode="skip"></outline-effect>
-    <pixelate-effect id="pixelEffect" granularity="6" blend-mode="skip"></pixelate-effect>
+    <pixelate-effect id="pixelEffect" granularity="8" blend-mode="skip"></pixelate-effect>
   </effect-composer>
 
 </model-viewer>
@@ -203,7 +203,7 @@
 
   console.log('Effects found:', { outlineEffect, pixelEffect });
 
-  // Функция переключения контура (как в рабочем примере)
+  // Функция переключения контура
   function toggleOutline() {
     if (outlineEffect) {
       if (isOutlineActive) {
@@ -229,13 +229,19 @@
   // Функция переключения пикселизации
   function togglePixel() {
     if (pixelEffect) {
-      if (pixelEffect.getAttribute('blend-mode') === 'skip') {
+      const currentMode = pixelEffect.getAttribute('blend-mode');
+      if (currentMode === 'skip') {
+        // Включаем пикселизацию
         pixelEffect.setAttribute('blend-mode', 'default');
+        pixelEffect.setAttribute('granularity', '12'); // Делаем пиксели крупнее
         pixelBtn.classList.add('active');
-        console.log('📷 Pixel ON');
+        pixelBtn.innerHTML = '🔳 Пикселизация (вкл)';
+        console.log('📷 Pixel ON, granularity: 12');
       } else {
+        // Выключаем пикселизацию
         pixelEffect.setAttribute('blend-mode', 'skip');
         pixelBtn.classList.remove('active');
+        pixelBtn.innerHTML = '🔲 Пикселизация';
         console.log('📷 Pixel OFF');
       }
     }
@@ -302,7 +308,7 @@
     toggleOutline();
   });
 
-  // Кнопка пикселизации
+  // Кнопка пикселизации - ОБНОВЛЕНА!
   pixelBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     togglePixel();
@@ -312,8 +318,12 @@
   window.debug = {
     outlineOn: () => outlineEffect?.setAttribute('blend-mode', 'default'),
     outlineOff: () => outlineEffect?.setAttribute('blend-mode', 'skip'),
-    pixelOn: () => pixelEffect?.setAttribute('blend-mode', 'default'),
+    pixelOn: () => {
+      pixelEffect?.setAttribute('blend-mode', 'default');
+      pixelEffect?.setAttribute('granularity', '12');
+    },
     pixelOff: () => pixelEffect?.setAttribute('blend-mode', 'skip'),
+    setPixelSize: (size) => pixelEffect?.setAttribute('granularity', size),
     effects: { outlineEffect, pixelEffect }
   };
 
