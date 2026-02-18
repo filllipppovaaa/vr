@@ -14,7 +14,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #111;
+      background: #f5f5f7;
       overflow: hidden;
     }
 
@@ -23,19 +23,19 @@
       top: 20px;
       left: 20px;
       z-index: 100;
-      background: rgba(30, 30, 40, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      color: #333;
       backdrop-filter: blur(5px);
-      border: 1px solid #444;
+      border: 1px solid #e0e0e0;
       pointer-events: none;
     }
 
     #controls h3 {
       margin: 0 0 15px 0;
-      color: #ffaa00;
+      color: #ff5500;
     }
 
     #controls button {
@@ -45,10 +45,11 @@
     #debug-info {
       margin-top: 15px;
       padding: 10px;
-      background: #222;
+      background: #f0f0f0;
       border-radius: 6px;
       font-size: 12px;
-      border-left: 3px solid #ffaa00;
+      border-left: 3px solid #ff5500;
+      color: #333;
     }
 
     .button-group {
@@ -62,9 +63,9 @@
       margin: 0;
       padding: 10px 16px;
       cursor: pointer;
-      background: #333;
-      color: white;
-      border: 1px solid #555;
+      background: #ffffff;
+      color: #333;
+      border: 1px solid #ddd;
       border-radius: 6px;
       font-weight: bold;
       font-size: 14px;
@@ -73,17 +74,18 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
     button:hover {
-      background: #444;
-      border-color: #ffaa00;
+      background: #f8f8f8;
+      border-color: #ff5500;
     }
 
     button.active {
-      background: #ffaa00;
-      color: #222;
-      border-color: #ffaa00;
+      background: #ff5500;
+      color: white;
+      border-color: #ff5500;
     }
 
     #click-hint {
@@ -91,42 +93,73 @@
       bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(255, 170, 0, 0.9);
-      color: #222;
-      padding: 12px 24px;
+      background: #ff5500;
+      color: white;
+      padding: 15px 30px;
       border-radius: 50px;
       font-weight: bold;
       z-index: 100;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(255, 85, 0, 0.4);
       animation: pulse 2s infinite;
       border: 2px solid white;
+      font-size: 18px;
+      letter-spacing: 1px;
     }
 
     @keyframes pulse {
-      0% { transform: translateX(-50%) scale(1); }
-      50% { transform: translateX(-50%) scale(1.05); }
-      100% { transform: translateX(-50%) scale(1); }
+      0% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 20px rgba(255, 85, 0, 0.4); }
+      50% { transform: translateX(-50%) scale(1.05); box-shadow: 0 8px 30px rgba(255, 85, 0, 0.6); }
+      100% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 20px rgba(255, 85, 0, 0.4); }
     }
 
     model-viewer {
       width: 100vw;
       height: 100vh;
-      background: #1a1a1a;
+      background: #ffffff;
       cursor: pointer;
+      --progress-bar-color: #ff5500;
+      --progress-bar-height: 4px;
     }
 
     model-viewer:active {
       cursor: grabbing;
     }
 
-    /* Стили для выделенного состояния */
-    model-viewer.selected {
-      outline: none;
+    /* Стили для демонстрации контура */
+    .outline-demo {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 85, 0, 0.9);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      border: 1px solid white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .outline-demo span {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: #ff5500;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ff5500;
     }
   </style>
 </head>
 
 <body>
+
+<div class="outline-demo">
+  <span></span> Контур будет ОРАНЖЕВЫМ
+</div>
 
 <div id="controls">
   <h3>🤖 Управление роботом</h3>
@@ -139,17 +172,18 @@
   <div class="button-group">
     <button id="outlineBtn">✨ Контур (вкл/выкл)</button>
     <button id="pixelBtn">🔲 Пикселизация</button>
+    <button id="testOutlineBtn" style="background: #ff5500; color: white;">🔥 ТЕСТ КОНТУРА</button>
   </div>
   
   <div id="debug-info">
-    <div><strong>Статус:</strong> <span id="status" style="color: #ffaa00;">Загрузка...</span></div>
+    <div><strong>Статус:</strong> <span id="status" style="color: #ff5500;">Загрузка...</span></div>
     <div><strong>Анимации:</strong> <span id="anim-list">Трек НЛА, holding_and_walk</span></div>
-    <div><strong>Режим:</strong> <span id="click-mode">👆 Кликни по роботу для контура</span></div>
+    <div><strong>Режим:</strong> <span id="click-mode">👆 Кликни по роботу</span></div>
   </div>
 </div>
 
 <div id="click-hint">
-  👆 КЛИКНИ ПО РОБОТУ - появится контур!
+  👆 КЛИКНИ ПО РОБОТУ - ЯРКИЙ ОРАНЖЕВЫЙ КОНТУР!
 </div>
 
 <model-viewer
@@ -161,20 +195,22 @@
   ar-status="not-present"
   loading="eager"
   reveal="auto"
-  shadow-intensity="1"
-  tone-mapping="aces"
-  exposure="1.2"
-  style="background-color: #1a1a1a;"
+  shadow-intensity="0.5"
+  tone-mapping="commerce"
+  exposure="1.5"
+  style="background-color: #ffffff;"
+  environment-image="neutral"
 >
 
-  <effect-composer multisampling="4">
-    <!-- Эффект контура (изначально выключен) -->
+  <effect-composer multisampling="8">
+    <!-- Эффект контура - МАКСИМАЛЬНО ЗАМЕТНЫЙ -->
     <outline-effect
       id="outlineEffect"
-      color="#ff6600"
-      strength="3"
-      threshold="0.1"
-      blend-mode="skip"
+      color="#ff3300"
+      strength="8"
+      threshold="0.01"
+      blend-mode="screen"
+      pulse="true"
     ></outline-effect>
     
     <!-- Эффект пикселизации -->
@@ -182,13 +218,13 @@
       id="pixelEffect"
       granularity="6"
       blend-mode="skip"
-      opacity="0.9"
+      opacity="1"
     ></pixelate-effect>
   </effect-composer>
 
-  <!-- Освещение -->
+  <!-- Мягкое освещение для светлого фона -->
   <environment-preset></environment-preset>
-  <directional-light intensity="1.5" shadow-intensity="1"></directional-light>
+  <directional-light intensity="1.2" shadow-intensity="0.5"></directional-light>
   <ambient-light intensity="0.8"></ambient-light>
 
 </model-viewer>
@@ -202,6 +238,7 @@
   const btn2 = document.getElementById('btn2');
   const outlineBtn = document.getElementById('outlineBtn');
   const pixelBtn = document.getElementById('pixelBtn');
+  const testOutlineBtn = document.getElementById('testOutlineBtn');
   const statusSpan = document.getElementById('status');
   const animListSpan = document.getElementById('anim-list');
   const clickModeSpan = document.getElementById('click-mode');
@@ -223,67 +260,88 @@
       pixel: pixelEffect ? '✅' : '❌' 
     });
     
+    // Если нашли контур, убеждаемся что он выключен
+    if (outlineEffect) {
+      console.log('🎨 Outline effect attributes:', {
+        color: outlineEffect.color,
+        strength: outlineEffect.strength,
+        blendMode: outlineEffect.blendMode
+      });
+    }
+    
     return outlineEffect || pixelEffect;
   }
 
-  // Функция обновления контура
+  // Функция обновления контура - СУПЕР ЯРКИЙ ВАРИАНТ
   function setOutline(active) {
     if (outlineEffect) {
       try {
         if (active) {
-          outlineEffect.blendMode = 'additive';
-          outlineEffect.strength = 3.5;
-          outlineEffect.color = '#ff9900';
+          // МАКСИМАЛЬНАЯ яркость контура
+          outlineEffect.blendMode = 'screen';
+          outlineEffect.strength = 10;
+          outlineEffect.color = '#ff3300';
+          outlineEffect.threshold = 0.005;
+          
           isOutlineActive = true;
           outlineBtn.classList.add('active');
-          console.log('🟠 Outline ENABLED');
+          console.log('🟠 SUPER BRIGHT OUTLINE ENABLED');
           
-          // Показываем подсказку
-          clickHint.style.background = 'rgba(76, 175, 80, 0.9)';
-          clickHint.innerHTML = '✅ Контур активирован! Кликни еще раз чтобы убрать';
+          // Визуальные эффекты
+          clickHint.style.background = '#00aa00';
+          clickHint.innerHTML = '✅ КОНТУР АКТИВИРОВАН! Кликни еще раз';
+          clickHint.style.animation = 'none';
+          clickHint.style.transform = 'translateX(-50%) scale(1.1)';
           
-          // Скрываем подсказку через 3 секунды
+          // Меняем фон для контраста
+          mv.style.backgroundColor = '#f0f0f0';
+          
+          clickModeSpan.innerHTML = '✨ ЯРКИЙ КОНТУР активен';
+          
+          setTimeout(() => {
+            clickHint.style.transform = 'translateX(-50%) scale(1)';
+          }, 200);
+          
+          // Скрываем подсказку через 2 секунды
           if (clickTimer) clearTimeout(clickTimer);
           clickTimer = setTimeout(() => {
-            clickHint.style.opacity = '0';
-            setTimeout(() => {
-              clickHint.innerHTML = '👆 КЛИКНИ ПО РОБОТУ - появится контур!';
-              clickHint.style.background = 'rgba(255, 170, 0, 0.9)';
-              clickHint.style.opacity = '1';
-            }, 300);
-          }, 3000);
+            clickHint.style.opacity = '0.7';
+          }, 2000);
         } else {
           outlineEffect.blendMode = 'skip';
           isOutlineActive = false;
           outlineBtn.classList.remove('active');
           console.log('⚪ Outline DISABLED');
           
-          // Возвращаем подсказку
-          clickHint.style.background = 'rgba(255, 170, 0, 0.9)';
-          clickHint.innerHTML = '👆 КЛИКНИ ПО РОБОТУ - появится контур!';
+          // Возвращаем обычный вид
+          clickHint.style.background = '#ff5500';
+          clickHint.innerHTML = '👆 КЛИКНИ ПО РОБОТУ - ЯРКИЙ ОРАНЖЕВЫЙ КОНТУР!';
+          clickHint.style.animation = 'pulse 2s infinite';
+          clickHint.style.opacity = '1';
+          
+          mv.style.backgroundColor = '#ffffff';
+          
+          clickModeSpan.innerHTML = '👆 Кликни по роботу';
         }
-        
-        // Обновляем текст режима
-        clickModeSpan.innerHTML = active ? '✨ Контур активен (кликни чтобы убрать)' : '👆 Кликни по роботу для контура';
-        
       } catch (e) {
         console.error('Error toggling outline:', e);
+        alert('Ошибка контура: ' + e.message);
       }
+    } else {
+      alert('Эффект контура не найден!');
     }
   }
 
   // Функция переключения контура
   function toggleOutline() {
-    if (outlineEffect) {
-      setOutline(!isOutlineActive);
-    }
+    setOutline(!isOutlineActive);
   }
 
   // Ждем загрузки модели
   mv.addEventListener('load', () => {
     console.log('✅ Model loaded successfully');
     statusSpan.textContent = 'Модель загружена';
-    statusSpan.style.color = '#00ff00';
+    statusSpan.style.color = '#00aa00';
     
     // Получаем анимации
     try {
@@ -303,6 +361,18 @@
     setTimeout(() => {
       findEffects();
       setOutline(false); // Убеждаемся что контур выключен
+      
+      // Пробуем принудительно включить для теста
+      setTimeout(() => {
+        if (outlineEffect) {
+          console.log('🔧 Testing outline - quick flash');
+          outlineEffect.blendMode = 'screen';
+          outlineEffect.strength = 10;
+          setTimeout(() => {
+            outlineEffect.blendMode = 'skip';
+          }, 500);
+        }
+      }, 1000);
     }, 500);
   });
 
@@ -312,14 +382,11 @@
     statusSpan.style.color = '#ff0000';
   });
 
-  // ОБРАБОТЧИК КЛИКА ПО РОБОТУ!
+  // КЛИК ПО РОБОТУ
   mv.addEventListener('click', (event) => {
     console.log('👆 Robot clicked!');
     
-    // Находим эффекты если ещё не нашли
     if (!outlineEffect) findEffects();
-    
-    // Переключаем контур
     toggleOutline();
     
     // Визуальный эффект клика
@@ -329,14 +396,35 @@
     }, 100);
   });
 
+  // ТЕСТОВАЯ КНОПКА - принудительно включает контур
+  testOutlineBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    if (!outlineEffect) findEffects();
+    
+    if (outlineEffect) {
+      // Тестовый режим - быстро мигаем контуром
+      alert('Тест контура: сейчас должен мигнуть оранжевый контур!');
+      
+      outlineEffect.blendMode = 'screen';
+      outlineEffect.strength = 12;
+      outlineEffect.color = '#ff0000';
+      
+      setTimeout(() => {
+        outlineEffect.blendMode = 'skip';
+      }, 1000);
+    } else {
+      alert('Эффект контура не найден! Попробуйте перезагрузить страницу.');
+    }
+  });
+
   // Кнопка анимации 1
   btn1.addEventListener('click', (e) => {
-    e.stopPropagation(); // Предотвращаем всплытие клика
+    e.stopPropagation();
     if (animations.length >= 1) {
       mv.animationName = animations[0];
       mv.currentTime = 0;
       mv.play();
-      console.log('Playing animation:', animations[0]);
     }
   });
 
@@ -347,11 +435,10 @@
       mv.animationName = animations[1];
       mv.currentTime = 0;
       mv.play();
-      console.log('Playing animation:', animations[1]);
     }
   });
 
-  // Кнопка контура (ручное управление)
+  // Кнопка контура
   outlineBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleOutline();
@@ -367,7 +454,7 @@
       try {
         if (pixelEffect.blendMode === 'skip') {
           pixelEffect.blendMode = 'normal';
-          pixelEffect.granularity = 8;
+          pixelEffect.granularity = 10;
           pixelBtn.classList.add('active');
           console.log('🔳 Pixelation ENABLED');
         } else {
@@ -381,20 +468,16 @@
     }
   });
 
-  // Скрываем подсказку при движении мыши
-  let hintTimeout;
-  document.addEventListener('mousemove', () => {
-    clickHint.style.opacity = '1';
-    clearTimeout(hintTimeout);
-    hintTimeout = setTimeout(() => {
-      if (!isOutlineActive) {
-        clickHint.style.opacity = '0.5';
-      }
-    }, 3000);
-  });
-
   // Находим эффекты при загрузке
   setTimeout(findEffects, 1000);
+
+  // Добавляем глобальную переменную для отладки
+  window.debugOutline = {
+    on: () => setOutline(true),
+    off: () => setOutline(false),
+    toggle: toggleOutline,
+    effect: () => outlineEffect
+  };
 
 })();
 </script>
