@@ -81,23 +81,6 @@
       border-color: #ff5500;
     }
 
-    #hover-hint {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 14px;
-      z-index: 100;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255,255,255,0.2);
-      pointer-events: none;
-      white-space: nowrap;
-    }
-
     model-viewer {
       width: 100vw;
       height: 100vh;
@@ -105,7 +88,6 @@
       touch-action: pan-y pinch-zoom;
     }
 
-    /* Убираем авто-вращение на мобильных для лучшей производительности */
     @media (max-width: 768px) {
       model-viewer {
         --progress-bar-height: 2px;
@@ -116,14 +98,11 @@
 
 <body>
 
-<div id="hover-hint">
-  🖱️ Наведи курсор для пикселей
-</div>
-
 <div id="controls">
   <button id="btn1">🎬 Анимация 1</button>
   <button id="btn2">🚶 Анимация 2</button>
   <button id="outlineBtn">✨ Контур</button>
+  <button id="pixelBtn">🔳 Пикселизация</button>
 </div>
 
 <model-viewer
@@ -156,14 +135,14 @@
   const btn1 = document.getElementById('btn1');
   const btn2 = document.getElementById('btn2');
   const outlineBtn = document.getElementById('outlineBtn');
-  const hoverHint = document.getElementById('hover-hint');
+  const pixelBtn = document.getElementById('pixelBtn');
 
   const outlineEffect = document.getElementById('outlineEffect');
   const pixelEffect = document.getElementById('pixelEffect');
 
   let animations = [];
   let isOutlineActive = false;
-  let hoverTimeout = null;
+  let isPixelActive = false;
   let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   console.log('Effects found:', { outlineEffect, pixelEffect });
@@ -186,24 +165,23 @@
     }
   }
 
-  // Функция включения пикселизации (при наведении)
-  function enablePixelHover() {
+  // Функция переключения пикселизации
+  function togglePixel() {
     if (pixelEffect) {
-      pixelEffect.setAttribute('blend-mode', 'default');
-      pixelEffect.setAttribute('granularity', isMobile ? '20' : '15'); // На мобильных крупнее
-      hoverHint.innerHTML = '🔳 Пикселизация';
-      hoverHint.style.background = '#ff5500';
-      console.log('🖱️ Hover - Pixel ON');
-    }
-  }
-
-  // Функция выключения пикселизации (при уходе курсора)
-  function disablePixelHover() {
-    if (pixelEffect) {
-      pixelEffect.setAttribute('blend-mode', 'skip');
-      hoverHint.innerHTML = '🖱️ Наведи курсор для пикселей';
-      hoverHint.style.background = 'rgba(0, 0, 0, 0.6)';
-      console.log('🖱️ Hover - Pixel OFF');
+      if (isPixelActive) {
+        pixelEffect.setAttribute('blend-mode', 'skip');
+        isPixelActive = false;
+        pixelBtn.classList.remove('active');
+        pixelBtn.innerHTML = '🔳 Пикселизация';
+        console.log('📷 Pixel OFF');
+      } else {
+        pixelEffect.setAttribute('blend-mode', 'default');
+        pixelEffect.setAttribute('granularity', isMobile ? '20' : '15');
+        isPixelActive = true;
+        pixelBtn.classList.add('active');
+        pixelBtn.innerHTML = '✅ Пикселизация';
+        console.log('📷 Pixel ON');
+      }
     }
   }
 
@@ -228,47 +206,6 @@
   mv.addEventListener('error', (error) => {
     console.error('❌ Model loading error:', error);
   });
-
-  // Для десктопа - наведение мыши
-  if (!isMobile) {
-    mv.addEventListener('mouseenter', () => {
-      console.log('🖱️ Mouse entered');
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = null;
-      }
-      enablePixelHover();
-    });
-
-    mv.addEventListener('mouseleave', () => {
-      console.log('🖱️ Mouse left');
-      hoverTimeout = setTimeout(() => {
-        disablePixelHover();
-      }, 100);
-    });
-  } else {
-    // Для мобильных - долгое нажатие
-    let touchTimer;
-    
-    mv.addEventListener('touchstart', (e) => {
-      touchTimer = setTimeout(() => {
-        enablePixelHover();
-      }, 300); // Включаем при долгом нажатии
-    });
-
-    mv.addEventListener('touchend', () => {
-      clearTimeout(touchTimer);
-      disablePixelHover();
-    });
-
-    mv.addEventListener('touchcancel', () => {
-      clearTimeout(touchTimer);
-      disablePixelHover();
-    });
-
-    // Изменяем подсказку для мобильных
-    hoverHint.innerHTML = '👆 Задержи палец для пикселей';
-  }
 
   // Кнопка анимации 1
   btn1.addEventListener('click', (e) => {
@@ -298,12 +235,21 @@
     toggleOutline();
   });
 
+  // Кнопка пикселизации
+  pixelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePixel();
+  });
+
   // Отладка
   window.debug = {
     outlineOn: () => outlineEffect?.setAttribute('blend-mode', 'default'),
     outlineOff: () => outlineEffect?.setAttribute('blend-mode', 'skip'),
-    pixelOn: () => enablePixelHover(),
-    pixelOff: () => disablePixelHover(),
+    pixelOn: () => {
+      pixelEffect?.setAttribute('blend-mode', 'default');
+      pixelEffect?.setAttribute('granularity', '20');
+    },
+    pixelOff: () => pixelEffect?.setAttribute('blend-mode', 'skip'),
     setPixelSize: (size) => pixelEffect?.setAttribute('granularity', size)
   };
 
