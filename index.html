@@ -133,6 +133,11 @@
     model-viewer:active {
       cursor: grabbing;
     }
+
+    /* Эффект свечения при наведении */
+    model-viewer:hover {
+      filter: drop-shadow(0 0 10px rgba(255,85,0,0.3));
+    }
   </style>
 </head>
 
@@ -148,13 +153,12 @@
   
   <div class="button-group">
     <button id="outlineBtn">✨ Контур (вкл/выкл)</button>
-    <button id="pixelBtn">🔲 Пикселизация</button>
   </div>
   
   <div id="debug-info">
     <div><strong>Статус:</strong> <span id="status" style="color: #ff5500;">Загрузка...</span></div>
     <div><strong>Анимации:</strong> <span id="anim-list">Трек НЛА, holding_and_walk</span></div>
-    <div><strong>Режим:</strong> <span id="click-mode">👆 Кликни по роботу</span></div>
+    <div><strong>Эффект:</strong> <span id="hover-effect">🖱️ Наведи курсор для пикселей</span></div>
   </div>
 </div>
 
@@ -189,17 +193,18 @@
   const btn1 = document.getElementById('btn1');
   const btn2 = document.getElementById('btn2');
   const outlineBtn = document.getElementById('outlineBtn');
-  const pixelBtn = document.getElementById('pixelBtn');
   const statusSpan = document.getElementById('status');
   const animListSpan = document.getElementById('anim-list');
   const clickModeSpan = document.getElementById('click-mode');
   const clickHint = document.getElementById('click-hint');
+  const hoverEffectSpan = document.getElementById('hover-effect');
 
   const outlineEffect = document.getElementById('outlineEffect');
   const pixelEffect = document.getElementById('pixelEffect');
 
   let animations = [];
   let isOutlineActive = false;
+  let hoverTimeout = null;
 
   console.log('Effects found:', { outlineEffect, pixelEffect });
 
@@ -226,24 +231,24 @@
     }
   }
 
-  // Функция переключения пикселизации
-  function togglePixel() {
+  // Функция включения пикселизации (при наведении)
+  function enablePixelHover() {
     if (pixelEffect) {
-      const currentMode = pixelEffect.getAttribute('blend-mode');
-      if (currentMode === 'skip') {
-        // Включаем пикселизацию
-        pixelEffect.setAttribute('blend-mode', 'default');
-        pixelEffect.setAttribute('granularity', '12'); // Делаем пиксели крупнее
-        pixelBtn.classList.add('active');
-        pixelBtn.innerHTML = '🔳 Пикселизация (вкл)';
-        console.log('📷 Pixel ON, granularity: 12');
-      } else {
-        // Выключаем пикселизацию
-        pixelEffect.setAttribute('blend-mode', 'skip');
-        pixelBtn.classList.remove('active');
-        pixelBtn.innerHTML = '🔲 Пикселизация';
-        console.log('📷 Pixel OFF');
-      }
+      pixelEffect.setAttribute('blend-mode', 'default');
+      pixelEffect.setAttribute('granularity', '15'); // Крупные пиксели
+      hoverEffectSpan.innerHTML = '🔳 Пикселизация: ВКЛ';
+      hoverEffectSpan.style.color = '#ff5500';
+      console.log('🖱️ Hover - Pixel ON');
+    }
+  }
+
+  // Функция выключения пикселизации (при уходе курсора)
+  function disablePixelHover() {
+    if (pixelEffect) {
+      pixelEffect.setAttribute('blend-mode', 'skip');
+      hoverEffectSpan.innerHTML = '🖱️ Наведи курсор для пикселей';
+      hoverEffectSpan.style.color = '#333';
+      console.log('🖱️ Hover - Pixel OFF');
     }
   }
 
@@ -272,6 +277,26 @@
     console.error('❌ Model loading error:', error);
     statusSpan.textContent = 'Ошибка загрузки';
     statusSpan.style.color = '#ff0000';
+  });
+
+  // НАВЕДЕНИЕ КУРСОРА - включает пикселизацию
+  mv.addEventListener('mouseenter', () => {
+    console.log('🖱️ Mouse entered');
+    // Очищаем предыдущий таймаут если был
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      hoverTimeout = null;
+    }
+    enablePixelHover();
+  });
+
+  // УХОД КУРСОРА - выключает пикселизацию с небольшой задержкой
+  mv.addEventListener('mouseleave', () => {
+    console.log('🖱️ Mouse left');
+    // Добавляем небольшую задержку для плавности
+    hoverTimeout = setTimeout(() => {
+      disablePixelHover();
+    }, 100);
   });
 
   // КЛИК ПО РОБОТУ - включает/выключает контур
@@ -308,21 +333,12 @@
     toggleOutline();
   });
 
-  // Кнопка пикселизации - ОБНОВЛЕНА!
-  pixelBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    togglePixel();
-  });
-
   // Добавляем отладку в консоль
   window.debug = {
     outlineOn: () => outlineEffect?.setAttribute('blend-mode', 'default'),
     outlineOff: () => outlineEffect?.setAttribute('blend-mode', 'skip'),
-    pixelOn: () => {
-      pixelEffect?.setAttribute('blend-mode', 'default');
-      pixelEffect?.setAttribute('granularity', '12');
-    },
-    pixelOff: () => pixelEffect?.setAttribute('blend-mode', 'skip'),
+    pixelOn: () => enablePixelHover(),
+    pixelOff: () => disablePixelHover(),
     setPixelSize: (size) => pixelEffect?.setAttribute('granularity', size),
     effects: { outlineEffect, pixelEffect }
   };
