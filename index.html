@@ -6,60 +6,84 @@
 
   <title>Robot Animations Control</title>
 
-  <!-- Подключаем model-viewer с эффектами -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
-  <script type="module" src="https://unpkg.com/@google/model-viewer-effects@2.0.0/dist/model-viewer-effects.min.js"></script>
+  <!-- Подключаем model-viewer с эффектами правильно -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer-effects@1.2.0/dist/model-viewer-effects.min.js"></script>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #111;
     }
 
     #controls {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: rgba(30, 30, 40, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      color: white;
+      backdrop-filter: blur(5px);
+      border: 1px solid #444;
+    }
+
+    #controls h3 {
+      margin: 0 0 15px 0;
+      color: #ffaa00;
     }
 
     #debug-info {
-      margin-top: 10px;
+      margin-top: 15px;
       padding: 10px;
-      background: #f0f0f0;
-      border-radius: 4px;
+      background: #222;
+      border-radius: 6px;
       font-size: 12px;
-      max-width: 300px;
+      border-left: 3px solid #ffaa00;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
     }
 
     button {
-      margin: 5px;
-      padding: 8px 16px;
+      margin: 0;
+      padding: 10px 16px;
       cursor: pointer;
-      background: #4CAF50;
+      background: #333;
       color: white;
-      border: none;
-      border-radius: 4px;
+      border: 1px solid #555;
+      border-radius: 6px;
       font-weight: bold;
+      font-size: 14px;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     button:hover {
-      background: #45a049;
+      background: #444;
+      border-color: #ffaa00;
     }
 
     button.active {
-      background: #ff5722;
+      background: #ffaa00;
+      color: #222;
+      border-color: #ffaa00;
     }
 
     model-viewer {
       width: 100vw;
       height: 100vh;
-      background: #e0e0e0;
+      background: #1a1a1a;
     }
   </style>
 </head>
@@ -68,60 +92,70 @@
 
 <div id="controls">
   <h3>🤖 Управление роботом</h3>
-  <button id="btn1">Анимация 1</button>
-  <button id="btn2">Анимация 2</button>
-  <button id="outlineBtn">🔲 Контур</button>
-  <button id="pixelBtn">🔳 Пикселизация</button>
+  
+  <div class="button-group">
+    <button id="btn1">🎬 Анимация 1 (Трек НЛА)</button>
+    <button id="btn2">🚶 Анимация 2 (holding_and_walk)</button>
+  </div>
+  
+  <div class="button-group">
+    <button id="outlineBtn">✨ Контур (обводка)</button>
+    <button id="pixelBtn">🔲 Пикселизация</button>
+  </div>
   
   <div id="debug-info">
-    <div><strong>Статус:</strong> <span id="status">Загрузка...</span></div>
-    <div><strong>Анимации:</strong> <span id="anim-list">нет</span></div>
+    <div><strong>Статус:</strong> <span id="status" style="color: #ffaa00;">Загрузка...</span></div>
+    <div><strong>Анимации:</strong> <span id="anim-list">Трек НЛА, holding_and_walk</span></div>
+    <div><strong>Эффекты:</strong> <span id="effects-status">❌ Не активны</span></div>
   </div>
 </div>
 
-<!-- model-viewer с эффектами -->
+<!-- model-viewer с правильной настройкой эффектов -->
 <model-viewer
   id="mv"
   src="robot.glb"
   camera-controls
   autoplay
-  animation-crossfade-duration="0"
+  animation-crossfade-duration="300"
   ar-status="not-present"
   loading="eager"
   reveal="auto"
-  tone-mapping="aces"
   shadow-intensity="1"
-  environment-image="neutral"
+  tone-mapping="aces"
+  exposure="1.2"
+  style="background-color: #1a1a1a;"
 >
 
-  <!-- Эффекты должны быть внутри тега model-viewer -->
-  <effect-composer>
-    <!-- Контур (outline) -->
+  <!-- Эффекты должны быть внутри и иметь правильные атрибуты -->
+  <effect-composer multisampling="4">
+    <!-- Эффект контура (outline) - обводка модели -->
     <outline-effect
       id="outlineEffect"
-      color="orange"
-      strength="3"
-      blend-mode="screen"
+      color="#ff6600"
+      strength="2.5"
+      threshold="0.1"
+      blend-mode="additive"
     ></outline-effect>
     
-    <!-- Пикселизация -->
+    <!-- Эффект пикселизации -->
     <pixelate-effect
       id="pixelEffect"
-      granularity="8"
+      granularity="6"
       blend-mode="normal"
-      opacity="1"
+      opacity="0.9"
     ></pixelate-effect>
   </effect-composer>
 
-  <!-- Добавляем освещение -->
-  <directional-light intensity="1" shadow-intensity="1"></directional-light>
-  <ambient-light intensity="0.5"></ambient-light>
+  <!-- Освещение -->
+  <environment-preset></environment-preset>
+  <directional-light intensity="1.5" shadow-intensity="1"></directional-light>
+  <ambient-light intensity="0.8"></ambient-light>
 
 </model-viewer>
 
 <script>
 (() => {
-  console.log('Script started');
+  console.log('🚀 Script started');
   
   const mv = document.getElementById('mv');
   const btn1 = document.getElementById('btn1');
@@ -130,13 +164,39 @@
   const pixelBtn = document.getElementById('pixelBtn');
   const statusSpan = document.getElementById('status');
   const animListSpan = document.getElementById('anim-list');
+  const effectsStatusSpan = document.getElementById('effects-status');
 
   let animations = [];
+  let outlineEffect = null;
+  let pixelEffect = null;
+
+  // Функция поиска эффектов
+  function findEffects() {
+    if (mv.shadowRoot) {
+      // Ищем эффекты в теневом DOM
+      outlineEffect = mv.shadowRoot.querySelector('outline-effect');
+      pixelEffect = mv.shadowRoot.querySelector('pixelate-effect');
+    }
+    
+    // Если не нашли, ищем по ID
+    if (!outlineEffect) outlineEffect = document.getElementById('outlineEffect');
+    if (!pixelEffect) pixelEffect = document.getElementById('pixelEffect');
+    
+    console.log('🔍 Found effects:', { outlineEffect, pixelEffect });
+    
+    // Обновляем статус эффектов
+    if (outlineEffect || pixelEffect) {
+      effectsStatusSpan.innerHTML = '✅ Найдены';
+    }
+    
+    return outlineEffect || pixelEffect;
+  }
 
   // Функция обновления статуса кнопок
-  function updateButtons() {
+  function updateButtonStates() {
     if (outlineEffect) {
-      if (outlineEffect.blendMode !== 'skip') {
+      const isActive = outlineEffect.blendMode !== 'skip' && outlineEffect.style?.display !== 'none';
+      if (isActive) {
         outlineBtn.classList.add('active');
       } else {
         outlineBtn.classList.remove('active');
@@ -144,7 +204,8 @@
     }
     
     if (pixelEffect) {
-      if (pixelEffect.blendMode !== 'skip') {
+      const isActive = pixelEffect.blendMode !== 'skip' && pixelEffect.style?.display !== 'none';
+      if (isActive) {
         pixelBtn.classList.add('active');
       } else {
         pixelBtn.classList.remove('active');
@@ -152,131 +213,143 @@
     }
   }
 
-  // Получаем эффекты после загрузки модели
-  let outlineEffect, pixelEffect;
-  
+  // Ждем загрузки модели
   mv.addEventListener('load', () => {
     console.log('✅ Model loaded successfully');
     statusSpan.textContent = 'Модель загружена';
-    statusSpan.style.color = 'green';
+    statusSpan.style.color = '#00ff00';
     
-    // Получаем эффекты из model-viewer
-    setTimeout(() => {
-      // Ищем эффекты внутри model-viewer
-      const effects = mv.querySelectorAll('outline-effect, pixelate-effect');
-      console.log('Found effects:', effects.length);
-      
-      effects.forEach(effect => {
-        if (effect.tagName === 'OUTLINE-EFFECT') {
-          outlineEffect = effect;
-          console.log('Outline effect found');
-        } else if (effect.tagName === 'PIXELATE-EFFECT') {
-          pixelEffect = effect;
-          console.log('Pixelate effect found');
-        }
-      });
-      
-      updateButtons();
-    }, 500);
-    
-    // Получаем доступные анимации
+    // Получаем анимации
     try {
       animations = mv.availableAnimations || [];
-      console.log('Available animations:', animations);
-      animListSpan.textContent = animations.length ? animations.join(', ') : 'нет анимаций';
+      console.log('📊 Available animations:', animations);
+      animListSpan.textContent = animations.join(', ');
       
       if (animations.length >= 1) {
         mv.animationName = animations[0];
         mv.play();
-        console.log('Playing animation:', animations[0]);
       }
     } catch (e) {
       console.error('Error getting animations:', e);
-      animListSpan.textContent = 'ошибка';
     }
+    
+    // Ищем эффекты после загрузки модели
+    setTimeout(() => {
+      findEffects();
+      updateButtonStates();
+      
+      // Пробуем принудительно активировать эффекты для теста
+      if (outlineEffect) {
+        console.log('🎨 Outline effect found, testing activation');
+        outlineEffect.blendMode = 'additive';
+        outlineEffect.strength = 3;
+      }
+    }, 1000);
   });
 
   mv.addEventListener('error', (error) => {
     console.error('❌ Model loading error:', error);
     statusSpan.textContent = 'Ошибка загрузки';
-    statusSpan.style.color = 'red';
+    statusSpan.style.color = '#ff0000';
   });
 
-  mv.addEventListener('progress', (event) => {
-    const progress = event.detail?.totalProgress || 0;
-    if (progress < 1) {
-      statusSpan.textContent = `Загрузка: ${Math.round(progress * 100)}%`;
-    }
-  });
-
-  // Кнопка 1
+  // Кнопка анимации 1
   btn1.addEventListener('click', () => {
     if (animations.length >= 1) {
       mv.animationName = animations[0];
       mv.currentTime = 0;
       mv.play();
-      console.log('Switched to animation:', animations[0]);
+      console.log('Playing animation:', animations[0]);
     }
   });
 
-  // Кнопка 2
+  // Кнопка анимации 2
   btn2.addEventListener('click', () => {
     if (animations.length >= 2) {
       mv.animationName = animations[1];
       mv.currentTime = 0;
       mv.play();
-      console.log('Switched to animation:', animations[1]);
+      console.log('Playing animation:', animations[1]);
     }
   });
 
-  // Переключение контура
+  // Кнопка контура (обводка)
   outlineBtn.addEventListener('click', () => {
+    // Находим эффект если ещё не нашли
+    if (!outlineEffect) findEffects();
+    
     if (outlineEffect) {
-      // Переключаем blendMode между 'screen' и 'skip'
-      if (outlineEffect.blendMode === 'skip') {
-        outlineEffect.blendMode = 'screen';
-        outlineEffect.strength = 3;
-        outlineBtn.classList.add('active');
-        console.log('🟠 Outline enabled');
-      } else {
-        outlineEffect.blendMode = 'skip';
-        outlineBtn.classList.remove('active');
-        console.log('⚪ Outline disabled');
+      try {
+        if (outlineEffect.blendMode === 'skip') {
+          // Включаем контур
+          outlineEffect.blendMode = 'additive';
+          outlineEffect.strength = 3;
+          outlineEffect.color = '#ff6600';
+          outlineBtn.classList.add('active');
+          effectsStatusSpan.innerHTML = '✨ Контур активен';
+          console.log('🟠 Outline ENABLED');
+        } else {
+          // Выключаем контур
+          outlineEffect.blendMode = 'skip';
+          outlineBtn.classList.remove('active');
+          effectsStatusSpan.innerHTML = '✅ Эффекты найдены';
+          console.log('⚪ Outline DISABLED');
+        }
+      } catch (e) {
+        console.error('Error toggling outline:', e);
       }
     } else {
-      console.log('Outline effect not found');
+      console.log('❌ Outline effect not found');
+      effectsStatusSpan.innerHTML = '❌ Эффект не найден';
     }
   });
 
-  // Переключение пикселизации
+  // Кнопка пикселизации
   pixelBtn.addEventListener('click', () => {
+    // Находим эффект если ещё не нашли
+    if (!pixelEffect) findEffects();
+    
     if (pixelEffect) {
-      // Переключаем blendMode между 'normal' и 'skip'
-      if (pixelEffect.blendMode === 'skip') {
-        pixelEffect.blendMode = 'normal';
-        pixelEffect.granularity = 8;
-        pixelBtn.classList.add('active');
-        console.log('🔲 Pixelation enabled');
-      } else {
-        pixelEffect.blendMode = 'skip';
-        pixelBtn.classList.remove('active');
-        console.log('⬜ Pixelation disabled');
+      try {
+        if (pixelEffect.blendMode === 'skip') {
+          // Включаем пикселизацию
+          pixelEffect.blendMode = 'normal';
+          pixelEffect.granularity = 8;
+          pixelEffect.opacity = 1;
+          pixelBtn.classList.add('active');
+          effectsStatusSpan.innerHTML = '🔲 Пикселизация активна';
+          console.log('🔳 Pixelation ENABLED');
+        } else {
+          // Выключаем пикселизацию
+          pixelEffect.blendMode = 'skip';
+          pixelBtn.classList.remove('active');
+          effectsStatusSpan.innerHTML = '✅ Эффекты найдены';
+          console.log('⬜ Pixelation DISABLED');
+        }
+      } catch (e) {
+        console.error('Error toggling pixelation:', e);
       }
     } else {
-      console.log('Pixel effect not found');
+      console.log('❌ Pixel effect not found');
+      effectsStatusSpan.innerHTML = '❌ Эффект не найден';
     }
   });
 
-  // Проверяем загрузку эффектов
-  setTimeout(() => {
+  // Проверяем наличие эффектов каждые 2 секунды
+  setInterval(() => {
     if (!outlineEffect || !pixelEffect) {
-      console.log('Searching for effects again...');
-      outlineEffect = document.getElementById('outlineEffect');
-      pixelEffect = document.getElementById('pixelEffect');
-      console.log('Effects by ID:', { outlineEffect, pixelEffect });
-      updateButtons();
+      findEffects();
     }
   }, 2000);
+
+  // Пробуем получить доступ к shadowRoot
+  setTimeout(() => {
+    if (mv.shadowRoot) {
+      console.log('🎭 Shadow root доступен');
+    } else {
+      console.log('❌ Shadow root НЕ доступен');
+    }
+  }, 1500);
 
 })();
 </script>
